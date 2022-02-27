@@ -52,7 +52,7 @@ options:
 Single URL target with *behavior* mode activated:
 
 ```bash
-python3 -u https://www.domain.com -b
+python3 autopoisoner.py -u https://www.domain.com -b
 ```
 
 Multiple URLs target with verbose: 
