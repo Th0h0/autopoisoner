@@ -5,17 +5,22 @@ import re
 from print_utils import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file", "-f", type=str, required=False, help= "file containing URLs to be tested")
-parser.add_argument("--url", "-u", type=str, required=False, help= "url to be tested")
-parser.add_argument("--verbose", "-v", action='store_true', help= "activate verbose mode")
-parser.add_argument("--behavior", "-b", action='store_true', help= "activate a lighter version of verbose, highlighting interesting cache behavior")
+parser.add_argument("--file", "-f", type=str, required=False, help="file containing URLs to be tested")
+parser.add_argument("--url", "-u", type=str, required=False, help="url to be tested")
+parser.add_argument("--verbose", "-v", action='store_true', help="activate verbose mode")
+parser.add_argument("--behavior", "-b", action='store_true', help="activate a lighter version of verbose, highlighting interesting cache behavior")
+parser.add_argument("--output", "-o", action='store_true', help="output file path (default: output.txt)")
 
 args = parser.parse_args()
 
 if not (args.file or args.url):
     parser.error('No input selected: Please add --file or --url.')
 
-outputFile = open("output.txt", "a")
+if args.output:
+    outputFile = open(args.output, "a")
+else:
+    outputFile = open("output.txt", "a")
+
 CANARY = "ndvyepenbvtidpvyzh.com"
 
 headersToFuzz = {
