@@ -63,6 +63,33 @@ python3 autopoisoner.py -f urls.txt -v
 
 ---
 
+### Example output
+
+**autoPoisoner** launched against *PortSwigger*’s web cache poisoning vulnerable lab (with verbose mode activated):
+
+```
+[VERBOSE] CANARY reflection in https://ac321fed1f609955c0f14d0000b700e0.web-security-academy.net. Confirming cache poisoning in progress ...
+VULNERABILITY CONFIRMED! | HEADER REFLECTION | EXPLICIT CACHE : TRUE | URL: https://ac321fed1f609955c0f14d0000b700e0.web-security-academy.net | HEADER : x-forwarded-host
+```
+
+**autoPoisoner** launched against Swisscom’s multiple sub-domains: 
+
+```
+[INTERESTING BEHAVIOR] PORT DIFFERENT LENGTH | EXPLICIT CACHE : TRUE | URL: https://homeapp-faq.swisscom.ch
+
+[INTERESTING BEHAVIOR] HEADER REFLECTION | EXPLICIT CACHE : FALSE | URL: https://erschliessungsvertraege.swisscom.ch | HEADER : x-host
+
+##Crawling effective
+
+[INTERESTING BEHAVIOR] DIFFERENT STATUS-CODE | EXPLICIT CACHE : FALSE | URL: https://support.bluewin.ch | HEADER : Transfer-Encoding
+
+[INTERESTING BEHAVIOR] DIFFERENT STATUS-CODE | EXPLICIT CACHE : FALSE | URL: https://support.bluewin.ch/static/css/main.8e6c2e41.css | HEADER : Transfer-Encoding
+
+[INTERESTING BEHAVIOR] DIFFERENT STATUS-CODE | EXPLICIT CACHE : FALSE | URL: https://support.bluewin.ch/static/js/main.96d91d15.js | HEADER : Transfer-Encoding
+```
+
+---
+
 ### Installation
 
 1 - Clone 
