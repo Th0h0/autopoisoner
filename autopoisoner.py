@@ -3,6 +3,10 @@ import argparse
 import random
 import re
 from print_utils import *
+import os
+
+currentPath = os.path.dirname(__file__)
+os.chdir(currentPath)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file", "-f", type=str, required=False, help="file containing URLs to be tested")
@@ -228,7 +232,8 @@ def main():
 
     if args.url:
         cache_poisoning_check(args.url)
+    outputFile.close()
 
-main()
 
-outputFile.close()
+if __name__ == '__main__':
+    main()
