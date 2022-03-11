@@ -1,4 +1,4 @@
-def potential_verbose_message(message, args, url = "default"):
+def potential_verbose_message(message, args, url="default"):
     if args.verbose:
         if message == "ERROR":
             print(f"[VERBOSE] Request Error for {url}")
@@ -9,11 +9,11 @@ def potential_verbose_message(message, args, url = "default"):
         elif message == "LENGTH":
             print(f"[VERBOSE] LENGTH difference in {url}. Confirming cache poisoning in progress ...")
         elif message == "UNSUCCESSFUL":
-            print("[VERBOSE] UNSUCCESSFUL\n")
+            print(f"[VERBOSE] Unsuccessful vulnerability confirmation on {url}\n")
         elif message == "CRAWLING":
             print(f"[VERBOSE] Crawling. Scanning : {url}")
 
-def behavior_or_confirmed_message(behaviorOrConfirmed, behaviorType, explicitCache, url, header = "default", outputFile = "default"):
+def behavior_or_confirmed_message(behaviorOrConfirmed, behaviorType, explicitCache, url, header = "default", outputFile = "default", LOCK = "default"):
 
     messageDict = {"REFLECTION": "HEADER REFLECTION",
                    "STATUS": "DIFFERENT STATUS-CODE",
@@ -26,9 +26,11 @@ def behavior_or_confirmed_message(behaviorOrConfirmed, behaviorType, explicitCac
         message = f"{messageDict[behaviorOrConfirmed]} {messageDict[behaviorType]} | EXPLICIT CACHE : {explicitCache} | URL: {url} | HEADER : {header}\n"
         print(message)
         if behaviorOrConfirmed == "CONFIRMED":
-            outputFile.write(message)
+            with LOCK:
+                outputFile.write(message)
     else:
         message = f"{messageDict[behaviorOrConfirmed]} PORT {messageDict[behaviorType]} | EXPLICIT CACHE : {explicitCache} | URL: {url} | HEADER : {header}\n"
         print(message)
         if behaviorOrConfirmed == "CONFIRMED":
-            outputFile.write(message)
+            with LOCK:
+                outputFile.write(message)

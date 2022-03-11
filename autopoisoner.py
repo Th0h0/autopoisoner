@@ -4,6 +4,7 @@ import random
 import re
 from print_utils import *
 import os
+import threading
 
 currentPath = os.path.dirname(__file__)
 os.chdir(currentPath)
@@ -11,11 +12,14 @@ os.chdir(currentPath)
 parser = argparse.ArgumentParser()
 parser.add_argument("--file", "-f", type=str, required=False, help="file containing URLs to be tested")
 parser.add_argument("--url", "-u", type=str, required=False, help="url to be tested")
+parser.add_argument("--threads", "-n", type=int, required=False, help= 'number of threads for the tool')
 parser.add_argument("--verbose", "-v", action='store_true', help="activate verbose mode")
 parser.add_argument("--behavior", "-b", action='store_true', help="activate a lighter version of verbose, highlighting interesting cache behavior")
 parser.add_argument("--output", "-o", action='store_true', help="output file path (default: output.txt)")
 
 args = parser.parse_args()
+
+LOCK = threading.Lock()
 
 if not (args.file or args.url):
     parser.error('No input selected: Please add --file or --url.')
@@ -24,6 +28,9 @@ if args.output:
     outputFile = open(args.output, "a")
 else:
     outputFile = open("output.txt", "a")
+
+if args.file :
+    allURLs = [line.replace('\n','') for line in open(args.file, "r")]
 
 CANARY = "ndvyepenbvtidpvyzh.com"
 
@@ -53,6 +60,29 @@ headersToFuzz = {
     "acunetix-header": CANARY,
     "accept-version": CANARY
     }
+
+def splitURLS(threadsSize): #Multithreading
+
+    splitted = []
+    URLSsize = len(allURLs)
+    width = int(URLSsize/threadsSize)
+    if width == 0:
+        width = 1
+    endVal = 0
+    i = 0
+    while endVal != URLSsize:
+        if URLSsize <= i + 2 * width:
+            if len(splitted) == threadsSize - 2:
+                endVal = int(i + (URLSsize - i)/2)
+            else:
+                endVal = URLSsize
+        else:
+            endVal = i + width
+
+        splitted.append(allURLs[i: endVal])
+        i += width
+
+    return splitted
 
 def canary_in_response(response : requests.Response):
     for val in response.headers.values():
@@ -129,9 +159,9 @@ def port_poisoning_check(url, initialResponse):
         potential_verbose_message("STATUS_CODE", args, url)
         if vulnerability_confirmed(response, url, randNum, buster):
             findingState = 2
-            behavior_or_confirmed_message("CONFIRMED", "STATUS", explicitCache, url, outputFile=outputFile)
+            behavior_or_confirmed_message("CONFIRMED", "STATUS", explicitCache, url, outputFile=outputFile,LOCK = LOCK)
         else:
-            potential_verbose_message("UNSUCCESSFUL", args)
+            potential_verbose_message("UNSUCCESSFUL", args, url)
             if args.behavior:
                 behavior_or_confirmed_message("BEHAVIOR", "STATUS", explicitCache, url)
 
@@ -140,10 +170,10 @@ def port_poisoning_check(url, initialResponse):
         potential_verbose_message("LENGTH", args, url)
         if vulnerability_confirmed(response, url, randNum, buster):
             findingState = 2
-            behavior_or_confirmed_message("CONFIRMED", "LENGTH", explicitCache, url , outputFile=outputFile)
+            behavior_or_confirmed_message("CONFIRMED", "LENGTH", explicitCache, url , outputFile=outputFile, LOCK = LOCK)
 
         else:
-            potential_verbose_message("UNSUCCESSFUL", args)
+            potential_verbose_message("UNSUCCESSFUL", args,  url)
             if args.behavior:
                 behavior_or_confirmed_message("BEHAVIOR", "LENGTH", explicitCache, url)
 
@@ -160,6 +190,8 @@ def headers_poisoning_check(url, initialResponse):
         try:
             response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", headers=payload, allow_redirects=False)
         except:
+            potential_verbose_message("ERROR", args, url)
+            print("Request error... Skipping the URL.")
             continue
         explicitCache = str(use_caching(response.headers)).upper()
 
@@ -168,10 +200,10 @@ def headers_poisoning_check(url, initialResponse):
             potential_verbose_message("CANARY", args, url)
             if vulnerability_confirmed(response, url, randNum, buster):
                 findingState = 2
-                behavior_or_confirmed_message("CONFIRMED", "REFLECTION", explicitCache, url, header=header, outputFile=outputFile)
+                behavior_or_confirmed_message("CONFIRMED", "REFLECTION", explicitCache, url, header=header, outputFile=outputFile, LOCK = LOCK)
 
             else:
-                potential_verbose_message("UNSUCCESSFUL", args)
+                potential_verbose_message("UNSUCCESSFUL", args, url)
                 if args.behavior:
                     behavior_or_confirmed_message("BEHAVIOR", "REFLECTION", explicitCache, url, header=header)
 
@@ -180,9 +212,9 @@ def headers_poisoning_check(url, initialResponse):
             potential_verbose_message("STATUS_CODE", args, url)
             if vulnerability_confirmed(response, url, randNum, buster):
                 findingState = 2
-                behavior_or_confirmed_message("CONFIRMED", "STATUS", explicitCache, url, header=header, outputFile=outputFile)
+                behavior_or_confirmed_message("CONFIRMED", "STATUS", explicitCache, url, header=header, outputFile=outputFile,LOCK = LOCK)
             else:
-                potential_verbose_message("UNSUCCESSFUL", args)
+                potential_verbose_message("UNSUCCESSFUL", args, url)
                 if args.behavior:
                     behavior_or_confirmed_message("BEHAVIOR", "STATUS", explicitCache, url, header=header)
 
@@ -191,9 +223,9 @@ def headers_poisoning_check(url, initialResponse):
             potential_verbose_message("LENGTH", args, url)
             if vulnerability_confirmed(response, url, randNum, buster):
                 findingState = 2
-                behavior_or_confirmed_message("CONFIRMED", "LENGTH", explicitCache, url, header=header, outputFile=outputFile)
+                behavior_or_confirmed_message("CONFIRMED", "LENGTH", explicitCache, url, header=header, outputFile=outputFile, LOCK = LOCK)
             else:
-                potential_verbose_message("UNSUCCESSFUL", args)
+                potential_verbose_message("UNSUCCESSFUL", args, url)
                 if args.behavior:
                     behavior_or_confirmed_message("BEHAVIOR", "LENGTH", explicitCache, url, header=header)
 
@@ -222,17 +254,31 @@ def cache_poisoning_check(url):
         if resultHeaders == "UNCONFIRMED" or resultPort == "UNCONFIRMED":
             crawl_and_scan(url, initialResponse)
 
-def main():
-    if args.file:
-        inputFile = open(args.file, "r")
-        for url in inputFile:
-            url = url.replace("\n", "")
-            cache_poisoning_check(url)
-        inputFile.close()
+def sequential_cache_poisoning_check(urlList):
 
+    for url in urlList:
+        cache_poisoning_check(url)
+
+def main():
     if args.url:
-        cache_poisoning_check(args.url)
-    outputFile.close()
+        try:
+            cache_poisoning_check(args.url)
+        except:
+            print("\nInvalid URL")
+    elif args.file:
+
+        if not args.threads or args.threads == 1:
+            sequential_cache_poisoning_check(allURLs)
+
+        else:
+            workingThreads = []
+            split = splitURLS(args.threads)
+            for subList in split:
+                t = threading.Thread(target=sequential_cache_poisoning_check, args=[subList])
+                t.start()
+                workingThreads.append(t)
+            for thread in workingThreads:
+                thread.join()
 
 
 if __name__ == '__main__':
