@@ -13,9 +13,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file", "-f", type=str, required=False, help="file containing URLs to be tested")
 parser.add_argument("--url", "-u", type=str, required=False, help="url to be tested")
 parser.add_argument("--threads", "-n", type=int, required=False, help= 'number of threads for the tool')
+parser.add_argument("--output", "-o", type=str, required=False, help='output file path')
 parser.add_argument("--verbose", "-v", action='store_true', help="activate verbose mode")
 parser.add_argument("--behavior", "-b", action='store_true', help="activate a lighter version of verbose, highlighting interesting cache behavior")
-parser.add_argument("--output", "-o", action='store_true', help="output file path (default: output.txt)")
 
 args = parser.parse_args()
 
