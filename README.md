@@ -40,10 +40,14 @@ python3 autopoisoner.py -h
 This displays help for the tool.
 
 ```bash
+usage: autopoisoner.py [-h] [--file FILE] [--url URL] [--threads THREADS] [--verbose] [--behavior] [--output]
+
 options:
   -h, --help            show this help message and exit
   --file FILE, -f FILE  file containing URLs to be tested
   --url URL, -u URL     url to be tested
+  --threads THREADS, -n THREADS
+                        number of threads for the tool
   --verbose, -v         activate verbose mode
   --behavior, -b        activate a lighter version of verbose, highlighting interesting cache behavior
   --output, -o          output file path (default: output.txt)
@@ -55,10 +59,10 @@ Single URL target with *behavior* mode activated:
 python3 autopoisoner.py -u https://www.domain.com -b
 ```
 
-Multiple URLs target with verbose: 
+Multiple URLs target with verbose and five working threads: 
 
 ```bash
-python3 autopoisoner.py -f urls.txt -v
+python3 autopoisoner.py -f urls.txt -v -n 5
 ```
 
 ---
