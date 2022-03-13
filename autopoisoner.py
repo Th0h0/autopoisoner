@@ -25,9 +25,9 @@ if not (args.file or args.url):
     parser.error('No input selected: Please add --file or --url.')
 
 if args.output:
-    outputFile = open(args.output, "a")
+    outputFile = open(args.output, "w")
 else:
-    outputFile = open("output.txt", "a")
+    outputFile = open("output.txt", "w")
 
 if args.file :
     allURLs = [line.replace('\n','') for line in open(args.file, "r")]
