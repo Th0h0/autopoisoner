@@ -279,6 +279,7 @@ def main():
                 workingThreads.append(t)
             for thread in workingThreads:
                 thread.join()
+    outputFile.close()
 
 
 if __name__ == '__main__':
