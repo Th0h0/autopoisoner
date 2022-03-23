@@ -2,12 +2,12 @@ import requests
 import argparse
 import random
 import re
-from print_utils import *
 import os
 import threading
 
 currentPath = os.path.dirname(__file__)
-os.chdir(currentPath)
+
+from print_utils import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file", "-f", type=str, required=False, help="file containing URLs to be tested")
@@ -30,7 +30,7 @@ else:
     outputFile = open("output.txt", "w")
 
 if args.file :
-    allURLs = [line.replace('\n','') for line in open(args.file, "r")]
+    allURLs = [line.replace('\n', '') for line in open(args.file, "r")]
 
 CANARY = "ndvyepenbvtidpvyzh.com"
 
