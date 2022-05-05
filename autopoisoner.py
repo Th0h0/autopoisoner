@@ -123,7 +123,10 @@ def use_caching(headers):
         return False
 
 def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum, buster):
-    confirmationResponse = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    try:
+        confirmationResponse = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    except:
+        return False
     if confirmationResponse.status_code == responseCandidate.status_code and confirmationResponse.text == responseCandidate.text:
         if canary_in_response(responseCandidate):
             if canary_in_response(confirmationResponse):
@@ -138,7 +141,10 @@ def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum,
 def base_request(url):
     randNum = str(random.randrange(9999999999999))
     buster = str(random.randrange(9999999999999))
-    response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    try:
+        response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    except:
+        return None
 
     return response
 
