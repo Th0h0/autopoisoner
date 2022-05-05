@@ -141,7 +141,10 @@ def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum,
 def base_request(url):
     randNum = str(random.randrange(9999999999999))
     buster = str(random.randrange(9999999999999))
-    response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    try:
+        response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
+    except:
+        return None
 
     return response
 
@@ -246,13 +249,12 @@ def crawl_and_scan(url, initialResponse):
 
 
 def cache_poisoning_check(url):
-    initialResponse = None
-    try:
-        initialResponse = base_request(url)
-    except:
+    initialResponse = base_request(url)
+    if not initialResponse:
         potential_verbose_message("ERROR", args, url)
+        return
 
-    if initialResponse and initialResponse.status_code in (200, 304, 302, 301, 401, 402, 403):
+    if initialResponse.status_code in (200, 304, 302, 301, 401, 402, 403):
         resultPort = port_poisoning_check(url, initialResponse)
         resultHeaders = headers_poisoning_check(url, initialResponse)
         if resultHeaders == "UNCONFIRMED" or resultPort == "UNCONFIRMED":
