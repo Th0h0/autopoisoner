@@ -20,6 +20,7 @@ parser.add_argument("--behavior", "-b", action='store_true', help="activate a li
 args = parser.parse_args()
 
 LOCK = threading.Lock()
+TIMEOUT_DELAY = 5
 
 if not (args.file or args.url):
     parser.error('No input selected: Please add --file or --url.')
@@ -122,7 +123,7 @@ def use_caching(headers):
         return False
 
 def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum, buster):
-    confirmationResponse = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False)
+    confirmationResponse = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
     if confirmationResponse.status_code == responseCandidate.status_code and confirmationResponse.text == responseCandidate.text:
         if canary_in_response(responseCandidate):
             if canary_in_response(confirmationResponse):
@@ -137,7 +138,7 @@ def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum,
 def base_request(url):
     randNum = str(random.randrange(9999999999999))
     buster = str(random.randrange(9999999999999))
-    response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False)
+    response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
 
     return response
 
@@ -149,7 +150,7 @@ def port_poisoning_check(url, initialResponse):
     host = url.split("://")[1].split("/")[0]
     response = None
     try:
-        response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", headers={"Host": f"{host}:8888"}, allow_redirects=False)
+        response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", headers={"Host": f"{host}:8888"}, allow_redirects=False, timeout=TIMEOUT_DELAY)
     except:
         return
     explicitCache = str(use_caching(response.headers)).upper()
@@ -188,7 +189,7 @@ def headers_poisoning_check(url, initialResponse):
         buster = str(random.randrange(9999999999999))
         response = None
         try:
-            response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", headers=payload, allow_redirects=False)
+            response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", headers=payload, allow_redirects=False, timeout=TIMEOUT_DELAY)
         except:
             potential_verbose_message("ERROR", args, url)
             print("Request error... Skipping the URL.")
@@ -269,18 +270,17 @@ def main():
 
         if not args.threads or args.threads == 1:
             sequential_cache_poisoning_check(allURLs)
-
         else:
             workingThreads = []
             split = splitURLS(args.threads)
             for subList in split:
                 t = threading.Thread(target=sequential_cache_poisoning_check, args=[subList])
-                t.start()
                 workingThreads.append(t)
+            for thread in workingThreads:
+                thread.start()
             for thread in workingThreads:
                 thread.join()
     outputFile.close()
-
 
 if __name__ == '__main__':
     main()
