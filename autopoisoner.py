@@ -20,7 +20,7 @@ parser.add_argument("--behavior", "-b", action='store_true', help="activate a li
 args = parser.parse_args()
 
 LOCK = threading.Lock()
-TIMEOUT_DELAY = 5
+TIMEOUT_DELAY = 10
 
 if not (args.file or args.url):
     parser.error('No input selected: Please add --file or --url.')
