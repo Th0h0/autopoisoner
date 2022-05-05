@@ -141,10 +141,7 @@ def vulnerability_confirmed(responseCandidate : requests.Response, url, randNum,
 def base_request(url):
     randNum = str(random.randrange(9999999999999))
     buster = str(random.randrange(9999999999999))
-    try:
-        response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
-    except:
-        return None
+    response = requests.get(f"{url}?cacheBusterX{randNum}={buster}", allow_redirects=False, timeout=TIMEOUT_DELAY)
 
     return response
 
